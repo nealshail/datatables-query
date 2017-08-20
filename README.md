@@ -112,7 +112,7 @@ be a configuration object equivalent to the one shown below:
             "dir": "asc" // direction of sorting ('asc' | 'desc')
         }
     ],
-    find: {} // additional mongodb find criteria to filter the query, e.g. {'name': 'fred'}
+    "find": {} // additional mongodb find criteria for the entire query, e.g. {"userId": "5994b8e9a3803c4b74acc133"}
 }
 ```
 
