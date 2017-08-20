@@ -60,7 +60,7 @@ var async = require('async'),
         }
 
         var searchText = params.search.value,
-            findParameters = {},
+            findParameters = (params.find) ? params.find : {},
             searchRegex,
             searchOrArray = [];
 

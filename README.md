@@ -111,7 +111,8 @@ be a configuration object equivalent to the one shown below:
             "column": "1", // index of the column used for sorting
             "dir": "asc" // direction of sorting ('asc' | 'desc')
         }
-    ]
+    ],
+    find: {} // additional mongodb find criteria to filter the query, e.g. {'name': 'fred'}
 }
 ```
 
