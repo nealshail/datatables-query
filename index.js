@@ -191,7 +191,7 @@ var async = require('async'),
                             if (err) {
                                 return cb(err);
                             }
-                            recordsTotal = count;
+                            recordsTotal = (typeof count === 'object' && count.total) ? count.total : count;
                             cb();
                         });
                     },
@@ -200,7 +200,7 @@ var async = require('async'),
                             if (err) {
                                 return cb(err);
                             }
-                            recordsFiltered = count;
+                            recordsFiltered = (typeof count === 'object' && count.total) ? count.total : count;
                             cb();
                         });
                     },
