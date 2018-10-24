@@ -1,5 +1,9 @@
 'use strict';
 
+// Escape regular expression special characters
+var _re_escape_regex = new RegExp( '(\\' + [ '/', '.', '*', '+', '?', '|', '(', ')', '[', ']', '{', '}', '\\', '$', '^', '-' ].join('|\\') + ')', 'g' );
+    
+
 var async = require('async'),
 
     /**
@@ -32,6 +36,18 @@ var async = require('async'),
         });
     },
 
+
+    /**
+     * Escape a string such that it can be used in a regular expression
+     *
+     *  @param {string} val string to escape
+     *  @returns {string} escaped string
+     */
+    escapeRegex = function ( val ) {
+        return val.replace( _re_escape_regex, '\\$1' );
+    },
+
+
     /**
      * Methdd buildFindParameters
      * Builds a MongoDB find expression based on DataTables param object
@@ -59,7 +75,7 @@ var async = require('async'),
             return null;
         }
 
-        var searchText = params.search.value,
+        var searchText = escapeRegex(params.search.value),
             findParameters = (params.find) ? params.find : {},
             searchRegex,
             searchOrArray = [];
