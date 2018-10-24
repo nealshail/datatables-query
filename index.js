@@ -68,7 +68,21 @@ var async = require('async'),
             return findParameters;
         }
 
-        searchRegex = new RegExp(searchText, 'i');
+        if (params.search && params.search.smart){
+            var a = (searchText.match( /"[^"]+"|[^ ]+/g ) || ['']).map(function ( word ) {
+                    if ( word.charAt(0) === '"' ) {
+                        var m = word.match( /^"(.*)"$/ );
+                        word = m ? m[1] : word;
+                    }
+        
+                    return word.replace('"', '');
+                } );
+    
+            searchRegex = new RegExp('^(?=.*?'+a.join( ')(?=.*?' )+').*$');
+        }
+        else{
+            searchRegex = new RegExp(searchText, 'i');
+        }
 
         var searchableFields = getSearchableFields(params);
 
