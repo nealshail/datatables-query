@@ -94,7 +94,7 @@ var async = require('async'),
                     return word.replace('"', '');
                 } );
     
-            searchRegex = new RegExp('^(?=.*?'+a.join( ')(?=.*?' )+').*$');
+            searchRegex = new RegExp('^(?=.*?'+a.join( ')(?=.*?' )+').*$', 'i');
         }
         else{
             searchRegex = new RegExp(searchText, 'i');
