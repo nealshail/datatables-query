@@ -235,13 +235,17 @@ var async = require('async'),
                         });
                     },
                     function runQuery (cb) {
-                        Model
+                        var query = Model
                             .find(findParameters)
                             .select(selectParameters)
                             .limit(length)
                             .skip(start)
-                            .sort(sortParameters)
-                            .exec(function (err, results) {
+                            .sort(sortParameters);
+                            if (params.populate) {
+                              query.populate(params.populate);
+                            }
+
+                            query.exec(function (err, results) {
                                 if (err) {
                                     return cb(err);
                                 }
