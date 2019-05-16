@@ -113,7 +113,16 @@ var async = require('async'),
             searchOrArray.push(orCondition);
         });
 
-        findParameters.$or = searchOrArray;
+
+        // already have an $or condition. will have to AND it.
+        if (findParameters.$or){
+            var prevOr = findParameters.$or;
+            delete findParameters.$or;
+            findParameters.$and = [{$or:searchOrArray}, {$or:prevOr}];
+        }
+        else{
+            findParameters.$or = searchOrArray;
+        }
 
         return findParameters;
     },
