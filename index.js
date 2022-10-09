@@ -226,7 +226,7 @@ var async = require('async'),
                         cb();
                     },
                     function fetchRecordsTotal (cb) {
-                        Model.countDocuments((params.find) ? params.find : {}, function (err, count) {
+                        Model.count((params.find) ? params.find : {}, function (err, count) {
                             if (err) {
                                 return cb(err);
                             }
@@ -235,7 +235,7 @@ var async = require('async'),
                         });
                     },
                     function fetchRecordsFiltered (cb) {
-                        Model.countDocuments(findParameters, function (err, count) {
+                        Model.count(findParameters, function (err, count) {
                             if (err) {
                                 return cb(err);
                             }
