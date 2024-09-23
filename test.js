@@ -136,7 +136,7 @@ describe('datatablesQuery tests', function () {
                 }]
             };
 
-            expect(query.buildSortParameters(params)).to.equal('name');
+            expect(query.buildSortParameters(params)).to.deep.equal({ 'name': 1});
             done();
         });
 
@@ -162,7 +162,7 @@ describe('datatablesQuery tests', function () {
                 }]
             };
 
-            expect(query.buildSortParameters(params)).to.equal('-email');
+            expect(query.buildSortParameters(params)).to.deep.equal({'email': -1});
             done();
         });
 
@@ -215,7 +215,7 @@ describe('datatablesQuery tests', function () {
                     }]
                 };
 
-                expect(query.buildSortParameters(params)).to.equal('-email');
+                expect(query.buildSortParameters(params)).to.deep.equal({'email': -1});
                 done();
             });
 
