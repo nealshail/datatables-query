@@ -20,7 +20,7 @@
   "author": "Vinicius Teixeira",
   "license": "MIT",
   "dependencies": {
-    "async": "^1.4.2"
+    "mongoose": "^8.6.3"
   },
   "devDependencies": {
     "chai": "^3.2.0",
