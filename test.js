@@ -478,5 +478,143 @@ describe('datatablesQuery tests', function () {
                 }
             ]);
         });
+
+        it('should use estimatedDocumentCount once when unfiltered and not exactTotal', function (done) {
+            var estimatedCount = 566882;
+            var Model = {
+                estimatedDocumentCount: sinon.stub().returns(Promise.resolve(estimatedCount)),
+                countDocuments: sinon.stub().returns(Promise.resolve(estimatedCount)),
+                find: sinon.stub().returns({
+                    select: sinon.stub().returnsThis(),
+                    limit: sinon.stub().returnsThis(),
+                    skip: sinon.stub().returnsThis(),
+                    sort: sinon.stub().returnsThis(),
+                    lean: sinon.stub().returnsThis(),
+                    exec: sinon.stub().returns(Promise.resolve([]))
+                })
+            };
+            var query = datatablesQuery(Model);
+            var params = {
+                draw: '1',
+                start: '0',
+                length: '10',
+                search: { value: '', regex: false },
+                columns: [
+                    { data: 'name', searchable: 'true', orderable: 'true' }
+                ],
+                order: [{ column: '0', dir: 'asc' }]
+            };
+
+            query.run(params).then(function (data) {
+                expect(Model.estimatedDocumentCount.calledOnce).to.equal(true);
+                expect(Model.countDocuments.callCount).to.equal(0);
+                expect(data.recordsTotal).to.equal(estimatedCount);
+                expect(data.recordsFiltered).to.equal(estimatedCount);
+                done();
+            }).catch(done);
+        });
+
+        it('should use exact countDocuments when exactTotal is true', function (done) {
+            var totalCount = 100;
+            var Model = {
+                estimatedDocumentCount: sinon.stub().returns(Promise.resolve(999)),
+                countDocuments: sinon.stub().returns(Promise.resolve(totalCount)),
+                find: sinon.stub().returns({
+                    select: sinon.stub().returnsThis(),
+                    limit: sinon.stub().returnsThis(),
+                    skip: sinon.stub().returnsThis(),
+                    sort: sinon.stub().returnsThis(),
+                    exec: sinon.stub().returns(Promise.resolve([]))
+                })
+            };
+            var query = datatablesQuery(Model);
+            var params = {
+                draw: '1',
+                start: '0',
+                length: '10',
+                exactTotal: true,
+                search: { value: '', regex: false },
+                columns: [
+                    { data: 'name', searchable: 'true', orderable: 'true' }
+                ],
+                order: [{ column: '0', dir: 'asc' }]
+            };
+
+            query.run(params).then(function (data) {
+                expect(Model.estimatedDocumentCount.callCount).to.equal(0);
+                expect(Model.countDocuments.calledOnce).to.equal(true);
+                expect(data.recordsTotal).to.equal(totalCount);
+                expect(data.recordsFiltered).to.equal(totalCount);
+                done();
+            }).catch(done);
+        });
+
+        it('should count filtered rows exactly when search differs from base find', function (done) {
+            var totalCount = 566882;
+            var filteredCount = 3;
+            var Model = {
+                estimatedDocumentCount: sinon.stub().returns(Promise.resolve(totalCount)),
+                countDocuments: sinon.stub().returns(Promise.resolve(filteredCount)),
+                find: sinon.stub().returns({
+                    select: sinon.stub().returnsThis(),
+                    limit: sinon.stub().returnsThis(),
+                    skip: sinon.stub().returnsThis(),
+                    sort: sinon.stub().returnsThis(),
+                    exec: sinon.stub().returns(Promise.resolve([]))
+                })
+            };
+            var query = datatablesQuery(Model);
+            var params = {
+                draw: '1',
+                start: '0',
+                length: '10',
+                search: { value: 'smith', regex: false },
+                columns: [
+                    { data: 'name', searchable: 'true', orderable: 'true' }
+                ],
+                order: [{ column: '0', dir: 'asc' }]
+            };
+
+            query.run(params).then(function (data) {
+                expect(Model.estimatedDocumentCount.calledOnce).to.equal(true);
+                expect(Model.countDocuments.calledOnce).to.equal(true);
+                expect(data.recordsTotal).to.equal(totalCount);
+                expect(data.recordsFiltered).to.equal(filteredCount);
+                done();
+            }).catch(done);
+        });
+
+        it('should call lean on find when params.lean is true', function (done) {
+            var leanStub = sinon.stub().returnsThis();
+            var Model = {
+                estimatedDocumentCount: sinon.stub().returns(Promise.resolve(1)),
+                countDocuments: sinon.stub().returns(Promise.resolve(1)),
+                find: sinon.stub().returns({
+                    select: sinon.stub().returnsThis(),
+                    limit: sinon.stub().returnsThis(),
+                    skip: sinon.stub().returnsThis(),
+                    sort: sinon.stub().returnsThis(),
+                    lean: leanStub,
+                    exec: sinon.stub().returns(Promise.resolve([]))
+                })
+            };
+            var query = datatablesQuery(Model);
+            var params = {
+                draw: '1',
+                start: '0',
+                length: '10',
+                lean: true,
+                search: { value: '', regex: false },
+                columns: [
+                    { data: 'name', searchable: 'true', orderable: 'true' }
+                ],
+                order: [{ column: '0', dir: 'asc' }]
+            };
+
+            query.run(params).then(function () {
+                expect(leanStub.calledOnce).to.equal(true);
+                done();
+            }).catch(done);
+        });
     });
 });

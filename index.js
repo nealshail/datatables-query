@@ -2,9 +2,9 @@
 
 // Escape regular expression special characters
 var _re_escape_regex = new RegExp( '(\\' + [ '/', '.', '*', '+', '?', '|', '(', ')', '[', ']', '{', '}', '\\', '$', '^', '-' ].join('|\\') + ')', 'g' );
-    
 
 const mongoose = require('mongoose');
+const util = require('util');
 
 /**
  * Method getSearchableFields
@@ -172,6 +172,40 @@ const buildSelectParameters = (params) => {
 };
 
 /**
+ * True when a find object has no filter keys (empty {}).
+ * @param {Object} find
+ * @returns {boolean}
+ */
+const isEmptyFind = (find) => {
+    return !find || Object.keys(find).length === 0;
+};
+
+/**
+ * Deep equality for Mongo find objects (including RegExp in search filters).
+ * @param {Object} a
+ * @param {Object} b
+ * @returns {boolean}
+ */
+const findQueriesEqual = (a, b) => {
+    return util.isDeepStrictEqual(a, b);
+};
+
+/**
+ * Count total rows for recordsTotal — estimated when unfiltered unless exactTotal requested.
+ * @param {Object} Model
+ * @param {Object} baseFind
+ * @param {Object} params
+ * @returns {Promise<number>}
+ */
+const countRecordsTotal = (Model, baseFind, params) => {
+    if (isEmptyFind(baseFind) && params.exactTotal !== true &&
+        typeof Model.estimatedDocumentCount === 'function') {
+        return Model.estimatedDocumentCount();
+    }
+    return Model.countDocuments(baseFind);
+};
+
+/**
  * Run wrapper function
  * Serves only to the Model parameter in the wrapped run function's scope
  * @param {Object} Model Mongoose Model Object, target of the search
@@ -213,26 +247,33 @@ const run = (Model) => {
                 );
             }
 
-            // Fetch recordsTotal
-            Model.countDocuments(params.find || {})
+            const baseFind = params.find || {};
+
+            countRecordsTotal(Model, baseFind, params)
             .then((count) => {
                 recordsTotal = count;
-                // Fetch recordsFiltered
+                if (findQueriesEqual(findParameters, baseFind)) {
+                    recordsFiltered = count;
+                    return count;
+                }
                 return Model.countDocuments(findParameters);
             })
             .then((count) => {
                 recordsFiltered = count;
-                // Build the query
                 let query = Model.find(findParameters)
                     .select(selectParameters)
                     .limit(length)
                     .skip(start)
                     .sort(sortParameters);
-        
+
                 if (params.populate) {
                     query = query.populate(params.populate);
                 }
-        
+
+                if (params.lean === true) {
+                    query = query.lean();
+                }
+
                 return query.exec();
                 })
                 .then((results) => {
@@ -266,8 +307,11 @@ const datatablesQuery = (Model) => {
         buildFindParameters: buildFindParameters,
         buildSortParameters: buildSortParameters,
         buildSelectParameters: buildSelectParameters,
-        escapeRegex: escapeRegex, // Optional: export if needed for testing
-        getSearchableFields: getSearchableFields, // Optional: export if needed for testing
+        escapeRegex: escapeRegex,
+        getSearchableFields: getSearchableFields,
+        isEmptyFind: isEmptyFind,
+        findQueriesEqual: findQueriesEqual,
+        countRecordsTotal: countRecordsTotal,
     };
 };
 
